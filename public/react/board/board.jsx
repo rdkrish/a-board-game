@@ -27,7 +27,8 @@ var Board = React.createClass({
       config: null,
       userColor: null,
       userId: null,
-      selectedSquares: {}
+      selectedSquares: {},
+      disableBoard: false
     };
   },
   getRandomValue: function() {
@@ -36,7 +37,10 @@ var Board = React.createClass({
   componentWillMount: function() {
     var that = this;
     socket.on('square selected', function(selectedSquares) {
-      that.setState({selectedSquares: selectedSquares});
+      that.setState({selectedSquares: selectedSquares, disableBoard: true});
+      setTimeout(function() {
+        that.setState({disableBoard: false});
+      }, that.state.config.blockTime);
     });
     restAPI.all('config').get('').then((response) => {
       that.setState({config: response.body().data(), userColor:
@@ -48,7 +52,7 @@ var Board = React.createClass({
     var that = this;
     return function(event) {
       var selectedSquares = that.state.selectedSquares;
-      if (squareId in selectedSquares === false) {
+      if (squareId in selectedSquares === false && that.state.disableBoard === false) {
         jquery('#' + squareId).css('background-color', that.state.userColor);
       }
     }
@@ -57,7 +61,7 @@ var Board = React.createClass({
     var that = this;
     return function(event) {
       var selectedSquares = that.state.selectedSquares;
-      if (squareId in selectedSquares === false) {
+      if (squareId in selectedSquares === false && that.state.disableBoard === false) {
         jquery('#' + squareId).css('background-color', that.state.unselectedColor);
       }
     }
@@ -66,7 +70,7 @@ var Board = React.createClass({
     var that = this;
     return function(event) {
       var selectedSquares = that.state.selectedSquares;
-      if (squareId in selectedSquares === true) {
+      if (squareId in selectedSquares === true || that.state.disableBoard === true) {
         that.setState({selectedSquares: selectedSquares});
         return;
       }
