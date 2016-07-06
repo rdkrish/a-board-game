@@ -14,8 +14,8 @@ var Board = React.createClass({
   styles: {
     gridListStyle: {
       backgroundColor: Theme.palette.accent2Color,
-      marginLeft: 100,
-      marginRight: 100,
+      marginLeft: 'auto',
+      marginRight: 'auto',
       marginBottom: 24,
       marginTop: 10,
       scrollY: 'auto',
@@ -25,7 +25,9 @@ var Board = React.createClass({
     return {
       unselectedColor: '#fff',
       config: null,
-      userColor: null
+      userColor: null,
+      userId: null,
+      selectedSquares: {}
     };
   },
   getRandomValue: function() {
@@ -33,28 +35,48 @@ var Board = React.createClass({
   },
   componentWillMount: function() {
     var that = this;
+    socket.on('square selected', function(selectedSquares) {
+      that.setState({selectedSquares: selectedSquares});
+    });
     restAPI.all('config').get('').then((response) => {
       that.setState({config: response.body().data(), userColor:
         'rgb(' + this.getRandomValue() + ',' + this.getRandomValue() + ',' +
-        this.getRandomValue() + ')'});
+        this.getRandomValue() + ')', userId: this.getRandomValue()});
     });
   },
   startHover: function(squareId) {
     var that = this;
     return function(event) {
-      jquery(squareId).css('background-color', '#ff0000');
+      var selectedSquares = that.state.selectedSquares;
+      if (squareId in selectedSquares === false) {
+        jquery('#' + squareId).css('background-color', that.state.userColor);
+      }
     }
   },
   stopHover: function(squareId) {
     var that = this;
     return function(event) {
-      jquery(squareId).css('background-color', that.state.unselectedColor);
+      var selectedSquares = that.state.selectedSquares;
+      if (squareId in selectedSquares === false) {
+        jquery('#' + squareId).css('background-color', that.state.unselectedColor);
+      }
     }
   },
   selectSquare: function(squareId) {
     var that = this;
     return function(event) {
-      jquery(squareId).css('background-color', that.state.userColor);
+      var selectedSquares = that.state.selectedSquares;
+      if (squareId in selectedSquares === true) {
+        that.setState({selectedSquares: selectedSquares});
+        return;
+      }
+      jquery('#' + squareId).css('background-color', that.state.userColor);
+      selectedSquares[squareId] = {
+        userId: that.state.userId,
+        userColor: that.state.userColor,
+      };
+      that.setState({selectedSquares: selectedSquares});
+      socket.emit('square selected', selectedSquares);
     }
   },
   render: function() {
@@ -64,14 +86,16 @@ var Board = React.createClass({
     var squares = [];
     for (var i = 0; i < this.state.config.boardSize; i++) {
       for (var j = 0; j < this.state.config.boardSize; j++) {
+        var squareId = 'square' + i + j;
         squares.push(<GridTile key={i.toString() + j.toString()}
-          id={'square' + i + j}
-          onMouseEnter={this.startHover('#square' + i + j)}
-          onMouseOut={this.stopHover('#square' + i + j)}
-          onTouchTap={this.selectSquare('#square' + i + j)}
-          disabled={true}
+          id={squareId}
+          onMouseEnter={this.startHover(squareId)}
+          onMouseOut={this.stopHover(squareId)}
+          onTouchTap={this.selectSquare(squareId)}
           style={{
-            backgroundColor: this.state.unselectedColor,
+            backgroundColor: this.state.selectedSquares[squareId] !== undefined?
+              this.state.selectedSquares[squareId].userColor :
+              this.state.unselectedColor,
             width: '100px',
             border: '1px solid #eeeeee',
             margin: 1
@@ -79,6 +103,7 @@ var Board = React.createClass({
         )
       }
     }
+    this.styles.gridListStyle.width = this.state.config.boardSize * 100;
     return (
       <div>
         <GridList cellHeight={100} cols={this.state.config.boardSize}

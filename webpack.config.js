@@ -9,7 +9,6 @@ module.exports = {
       'react-dom',
       'react-router',
       'material-ui',
-      'moment',
       'fbemitter',
       'react-tap-event-plugin',
       'whatwg-fetch',

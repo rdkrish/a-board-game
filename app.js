@@ -9,6 +9,14 @@ var routes = require('./routes/index');
 
 var app = express();
 
+var server = app.listen(8000);
+var io = require('socket.io').listen(server);
+io.on('connection', function(socket){
+  socket.on('square selected', function(selectedSquares) {
+    io.emit('square selected', selectedSquares);
+  });
+});
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.engine('html',  require('ejs').renderFile);
