@@ -1,8 +1,11 @@
 import React from 'react';
+import Card from 'material-ui/lib/card/card';
+import CardText from 'material-ui/lib/card/card-text';
 import Colors from 'material-ui/lib/styles/colors';
 import GridList from 'material-ui/lib/grid-list/grid-list';
 import GridTile from 'material-ui/lib/grid-list/grid-tile';
 import jquery from 'jquery';
+import RaisedButton from 'material-ui/lib/raised-button';
 import 'whatwg-fetch';
 import restful, { fetchBackend } from 'restful.js';
 
@@ -12,6 +15,18 @@ import Theme from '../theme.jsx';
 
 var Board = React.createClass({
   styles: {
+    card: {
+      padding: 10,
+      margin: 10
+    },
+    header: {
+      fontSize: 24,
+      paddingLeft: 10,
+      fontFamily: Theme.font.primary1Family
+    },
+    button: {
+      marginRight: 10
+    },
     gridListStyle: {
       backgroundColor: Theme.palette.accent2Color,
       marginLeft: 'auto',
@@ -83,10 +98,7 @@ var Board = React.createClass({
       socket.emit('square selected', selectedSquares);
     }
   },
-  render: function() {
-    if (this.state.config === null) {
-      return <div></div>;
-    }
+  getSquares: function() {
     var squares = [];
     for (var i = 0; i < this.state.config.boardSize; i++) {
       for (var j = 0; j < this.state.config.boardSize; j++) {
@@ -107,7 +119,36 @@ var Board = React.createClass({
         )
       }
     }
+    return squares;
+  },
+  getScores: function() {
+    var scores = {};
+    for (var key in this.state.selectedSquares) {
+      var square = this.state.selectedSquares[key];
+      if (square.userId in scores) {
+        scores[square.userId].count += 1;
+      } else {
+        scores[square.userId] = {userColor: square.userColor, count: 1};
+      }
+    }
+    return scores;
+  },
+  render: function() {
+    if (this.state.config === null) {
+      return <div></div>;
+    }
+    var squares = this.getSquares();
     this.styles.gridListStyle.width = this.state.config.boardSize * 100;
+    var scores = this.getScores();
+    var scoresHTML = [];
+    for (var score in scores) {
+      scoresHTML.push(
+        <RaisedButton disabled={true} style={this.styles.button}
+          label={'user ' + score + ': ' + scores[score].count}
+          disabledLabelColor={'#fff'}
+          disabledBackgroundColor={scores[score].userColor} />
+      )
+    }
     return (
       <div>
         <GridList cellHeight={100} cols={this.state.config.boardSize}
@@ -116,6 +157,10 @@ var Board = React.createClass({
           style={this.styles.gridListStyle}>
           {squares}
         </GridList>
+        <Card style={this.styles.card}>
+          <CardText style={this.styles.header}>Scores</CardText>
+          {scoresHTML}
+        </Card>
       </div>
     )
   }
