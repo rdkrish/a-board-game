@@ -10,6 +10,8 @@ import RaisedButton from 'material-ui/lib/raised-button';
 import 'whatwg-fetch';
 import restful, { fetchBackend } from 'restful.js';
 
+import {browserHistory} from 'react-router';
+
 const restAPI = restful('', fetchBackend(fetch));
 
 import Theme from '../theme.jsx';
@@ -51,6 +53,10 @@ var Board = React.createClass({
     return Math.floor(Math.random() * (255 - 0 + 1)) + 0;
   },
   componentWillMount: function() {
+    if (this.props.params.gameId === undefined) {
+      var url = '/game/' + this.props.params.userName + '/' + this.getRandomValue();
+      browserHistory.push(url);
+    }
     var that = this;
     socket.on('square selected', function(selectedSquares) {
       that.setState({selectedSquares: selectedSquares, disableBoard: true});
@@ -188,7 +194,7 @@ var Board = React.createClass({
               onTouchTap={this.handleClose}
             />
           }
-          modal={false}
+          modal={true}
           open={Object.keys(this.state.selectedSquares).length ===
             this.state.config.boardSize * this.state.config.boardSize}
           onRequestClose={this.handleClose}>

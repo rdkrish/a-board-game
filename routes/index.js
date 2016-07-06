@@ -12,7 +12,23 @@ router.get('/home', function(req, res, next) {
   res.render('index.html', {'config': config});
 });
 
+router.get('/user', function(req, res, next) {
+  res.render('index.html', {'config': config});
+});
+
+router.get('/user/:gameId', function(req, res, next) {
+  res.render('index.html', {'config': config});
+});
+
 router.get('/game', function(req, res, next) {
+  res.render('index.html', {'config': config});
+});
+
+router.get('/game/:userName', function(req, res, next) {
+  res.render('index.html', {'config': config});
+});
+
+router.get('/game/:userName/:gameId', function(req, res, next) {
   res.render('index.html', {'config': config});
 });
 
