@@ -3,7 +3,9 @@ import Card from 'material-ui/lib/card/card';
 import CardText from 'material-ui/lib/card/card-text';
 import RaisedButton from 'material-ui/lib/raised-button';
 
-import Theme from './theme.jsx';
+import {browserHistory} from 'react-router';
+
+import Theme from '../theme.jsx';
 
 var Home = React.createClass({
   styles: {
@@ -21,7 +23,7 @@ var Home = React.createClass({
     }
   },
   startGame: function() {
-    console.log('start a new game');
+    browserHistory.push('/user')
   },
   joinGame: function() {
     console.log('Join a game');
