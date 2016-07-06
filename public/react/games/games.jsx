@@ -22,7 +22,7 @@ var Games = React.createClass({
       fontFamily: Theme.font.primary1Family
     },
     button: {
-      marginRight: 10
+      margin: 10
     }
   },
   getInitialState: function() {
@@ -42,6 +42,9 @@ var Games = React.createClass({
       browserHistory.push('/user/' + gameId);
     }
   },
+  startGame: function() {
+    browserHistory.push('/user');
+  },
   render: function() {
     var gamesHTML = [];
     for (var game in this.state.games) {
@@ -55,6 +58,11 @@ var Games = React.createClass({
       <Card style={this.styles.card}>
         <CardText style={this.styles.header}>Select a Game</CardText>
         {gamesHTML}
+        <div>
+          <RaisedButton label="Start a new game" primary={true}
+            style={this.styles.button}
+            onTouchTap={this.startGame} />
+        </div>
       </Card>
     )
   }
