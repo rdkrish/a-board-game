@@ -1,0 +1,4 @@
+node_modules
+npm-debug.log
+public/react/vendors.js
+public/react/app.js
