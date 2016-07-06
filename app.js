@@ -15,6 +15,10 @@ io.on('connection', function(socket){
   socket.on('square selected', function(selectedSquares, gameId) {
     io.emit('square selected', selectedSquares, gameId);
   });
+  socket.on('players joined', function(gameId) {
+    var games = routes.games;
+    io.emit('players joined', games[gameId]);
+  });
 });
 
 // view engine setup

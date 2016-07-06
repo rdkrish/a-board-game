@@ -45,9 +45,20 @@ router.get('/games', function(req, res, next) {
   res.json(router.games);
 });
 
+router.get('/games/:gameId', function(req, res, next) {
+  var gameId = req.params.gameId;
+  if (router.games[gameId] !== undefined) {
+    res.json(router.games[gameId]);
+  }
+});
+
 router.put('/games', function(req, res, next) {
   var game = req.body;
-  router.games[game.gameId] = game;
+  if (router.games[game.gameId] !== undefined) {
+    router.games[game.gameId].users.push(game.user);
+  } else {
+    router.games[game.gameId] = {gameId: game.gameId, users: [game.user]};
+  }
   res.json(router.games);
 });
 

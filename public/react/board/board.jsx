@@ -42,11 +42,12 @@ var Board = React.createClass({
   getInitialState: function() {
     return {
       unselectedColor: '#fff',
-      config: null,
+      config: {},
       userColor: null,
       userId: null,
       selectedSquares: {},
-      disableBoard: false
+      disableBoard: false,
+      startGame: false
     };
   },
   getRandomValue: function() {
@@ -57,12 +58,19 @@ var Board = React.createClass({
     if (this.props.params.gameId === undefined) {
       var gameId = this.getRandomValue();
       var url = '/game/' + this.props.params.userName + '/' + gameId;
-      restAPI.one('games', '').put({gameId: gameId, users:
-        [{userId: userId, userName: this.props.params.userName}]});
+      restAPI.one('games', '').put({gameId: gameId, user:
+        {userName: this.props.params.userName}}).then((response) => {
+          socket.emit('players joined', gameId);
+      });
       this.setState({gameId: gameId});
       browserHistory.push(url);
     }
     var that = this;
+    socket.on('players joined', function(game) {
+      if (game.users.length >= that.state.config.minPlayers) {
+        that.setState({startGame: true});
+      }
+    });
     socket.on('square selected', function(selectedSquares, gameId) {
       if (that.state.gameId !== gameId) {
         return;
@@ -73,9 +81,16 @@ var Board = React.createClass({
       }, that.state.config.blockTime);
     });
     restAPI.all('config').get('').then((response) => {
-      that.setState({config: response.body().data(), userColor:
+      var config = response.body().data();
+      that.setState({config: config, userColor:
         'rgb(' + this.getRandomValue() + ',' + this.getRandomValue() + ',' +
         this.getRandomValue() + ')', userId: userId, gameId: this.props.params.gameId});
+      restAPI.one('games', that.props.params.gameId).get().then((response) => {
+        var game = response.body().data();
+        if (game.users.length >= config.minPlayers) {
+          that.setState({startGame: true});
+        }
+      });
     });
   },
   startHover: function(squareId) {
@@ -157,6 +172,13 @@ var Board = React.createClass({
   render: function() {
     if (this.state.config === null) {
       return <div></div>;
+    }
+    if (this.state.startGame === false) {
+      return (
+        <Card style={this.styles.card}>
+          <CardText style={this.styles.header}>Waiting for players to join</CardText>
+        </Card>
+      )
     }
     var squares = this.getSquares();
     this.styles.gridListStyle.width = this.state.config.boardSize * 100;
