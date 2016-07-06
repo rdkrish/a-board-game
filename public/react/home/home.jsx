@@ -23,10 +23,10 @@ var Home = React.createClass({
     }
   },
   startGame: function() {
-    browserHistory.push('/user')
+    browserHistory.push('/user');
   },
   joinGame: function() {
-    console.log('Join a game');
+    browserHistory.push('/game/all');
   },
   render: function() {
     return (

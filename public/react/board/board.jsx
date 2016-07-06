@@ -53,12 +53,20 @@ var Board = React.createClass({
     return Math.floor(Math.random() * (255 - 0 + 1)) + 0;
   },
   componentWillMount: function() {
+    var userId = this.getRandomValue()
     if (this.props.params.gameId === undefined) {
-      var url = '/game/' + this.props.params.userName + '/' + this.getRandomValue();
+      var gameId = this.getRandomValue();
+      var url = '/game/' + this.props.params.userName + '/' + gameId;
+      restAPI.one('games', '').put({gameId: gameId, users:
+        [{userId: userId, userName: this.props.params.userName}]});
+      this.setState({gameId: gameId});
       browserHistory.push(url);
     }
     var that = this;
-    socket.on('square selected', function(selectedSquares) {
+    socket.on('square selected', function(selectedSquares, gameId) {
+      if (that.state.gameId !== gameId) {
+        return;
+      }
       that.setState({selectedSquares: selectedSquares, disableBoard: true});
       setTimeout(function() {
         that.setState({disableBoard: false});
@@ -67,7 +75,7 @@ var Board = React.createClass({
     restAPI.all('config').get('').then((response) => {
       that.setState({config: response.body().data(), userColor:
         'rgb(' + this.getRandomValue() + ',' + this.getRandomValue() + ',' +
-        this.getRandomValue() + ')', userId: this.getRandomValue()});
+        this.getRandomValue() + ')', userId: userId, gameId: this.props.params.gameId});
     });
   },
   startHover: function(squareId) {
@@ -99,10 +107,11 @@ var Board = React.createClass({
       jquery('#' + squareId).css('background-color', that.state.userColor);
       selectedSquares[squareId] = {
         userId: that.state.userId,
+        userName: that.props.params.userName,
         userColor: that.state.userColor,
       };
       that.setState({selectedSquares: selectedSquares});
-      socket.emit('square selected', selectedSquares);
+      socket.emit('square selected', selectedSquares, that.state.gameId);
     }
   },
   getSquares: function() {
@@ -135,14 +144,15 @@ var Board = React.createClass({
       if (square.userId in scores) {
         scores[square.userId].count += 1;
       } else {
-        scores[square.userId] = {userId: square.userId, userColor: square.userColor, count: 1};
+        scores[square.userId] = {userId: square.userId,
+          userName: square.userName, userColor: square.userColor, count: 1};
       }
     }
     return scores;
   },
   handleClose: function() {
     this.setState({selectedSquares: {}});
-    socket.emit('square selected', {});
+    socket.emit('square selected', {}, this.state.gameId);
   },
   render: function() {
     if (this.state.config === null) {
@@ -155,7 +165,7 @@ var Board = React.createClass({
     for (var score in scores) {
       scoresHTML.push(
         <RaisedButton disabled={true} style={this.styles.button}
-          label={'user ' + score + ': ' + scores[score].count}
+          label={scores[score].userName + ': ' + scores[score].count}
           disabledLabelColor={'#fff'}
           disabledBackgroundColor={scores[score].userColor} />
       )
@@ -170,7 +180,7 @@ var Board = React.createClass({
         }
       }
       winnerHTML = <RaisedButton disabled={true} style={this.styles.button}
-        label={'user ' + winner.userId + ': ' + winner.count}
+        label={winner.userName + ': ' + winner.count}
         disabledLabelColor={'#fff'}
         disabledBackgroundColor={winner.userColor} />;
     }

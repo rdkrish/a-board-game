@@ -12,8 +12,8 @@ var app = express();
 var server = app.listen(8000);
 var io = require('socket.io').listen(server);
 io.on('connection', function(socket){
-  socket.on('square selected', function(selectedSquares) {
-    io.emit('square selected', selectedSquares);
+  socket.on('square selected', function(selectedSquares, gameId) {
+    io.emit('square selected', selectedSquares, gameId);
   });
 });
 
