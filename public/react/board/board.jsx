@@ -2,6 +2,7 @@ import React from 'react';
 import Card from 'material-ui/lib/card/card';
 import CardText from 'material-ui/lib/card/card-text';
 import Colors from 'material-ui/lib/styles/colors';
+import Dialog from 'material-ui/lib/dialog';
 import GridList from 'material-ui/lib/grid-list/grid-list';
 import GridTile from 'material-ui/lib/grid-list/grid-tile';
 import jquery from 'jquery';
@@ -128,10 +129,14 @@ var Board = React.createClass({
       if (square.userId in scores) {
         scores[square.userId].count += 1;
       } else {
-        scores[square.userId] = {userColor: square.userColor, count: 1};
+        scores[square.userId] = {userId: square.userId, userColor: square.userColor, count: 1};
       }
     }
     return scores;
+  },
+  handleClose: function() {
+    this.setState({selectedSquares: {}});
+    socket.emit('square selected', {});
   },
   render: function() {
     if (this.state.config === null) {
@@ -149,6 +154,20 @@ var Board = React.createClass({
           disabledBackgroundColor={scores[score].userColor} />
       )
     }
+    var winnerHTML = '';
+    if (Object.keys(this.state.selectedSquares).length ===
+      this.state.config.boardSize * this.state.config.boardSize) {
+      var winner = scores[this.state.userId];
+      for (var score in scores) {
+        if (winner.count < scores[score].count) {
+          winner = scores[score];
+        }
+      }
+      winnerHTML = <RaisedButton disabled={true} style={this.styles.button}
+        label={'user ' + winner.userId + ': ' + winner.count}
+        disabledLabelColor={'#fff'}
+        disabledBackgroundColor={winner.userColor} />;
+    }
     return (
       <div>
         <GridList cellHeight={100} cols={this.state.config.boardSize}
@@ -161,6 +180,21 @@ var Board = React.createClass({
           <CardText style={this.styles.header}>Scores</CardText>
           {scoresHTML}
         </Card>
+        <Dialog
+          title="Game Over!"
+          actions={<RaisedButton
+              label="Close"
+              primary={true}
+              onTouchTap={this.handleClose}
+            />
+          }
+          modal={false}
+          open={Object.keys(this.state.selectedSquares).length ===
+            this.state.config.boardSize * this.state.config.boardSize}
+          onRequestClose={this.handleClose}>
+          <CardText style={this.styles.header}>Winner is</CardText>
+          {winnerHTML}
+        </Dialog>
       </div>
     )
   }
