@@ -20,6 +20,12 @@ Note: you should be within the board game directory
 
 6. Go to http://localhost:8000 to play the game
 
+# Configuration
+
+Before starting the game server you can configure some of the parameters like size of the board, minimum number of players and block time.
+
+You can find these configurations in config.js file. Modify the config as you require and start the game server.
+
 # Docker
 
 For ease of deployment you can also start the game within a docker container.
