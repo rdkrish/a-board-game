@@ -37,11 +37,11 @@ var User = React.createClass({
     var url = '/game/' + this.state.user.name;
     if (this.props.params.gameId !== undefined) {
       url += '/' + this.props.params.gameId;
+      restAPI.one('games', '').put({gameId: this.props.params.gameId, user:
+        {userName: this.state.user.name}}).then((response) => {
+        socket.emit('players joined', that.props.params.gameId);
+      });
     }
-    restAPI.one('games', '').put({gameId: this.props.params.gameId, user:
-      {userName: this.state.user.name}}).then((response) => {
-      socket.emit('players joined', that.props.params.gameId);
-    });
     browserHistory.push(url);
   },
   render: function() {
